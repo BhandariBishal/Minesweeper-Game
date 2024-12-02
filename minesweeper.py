@@ -241,14 +241,18 @@ class Minesweeper:
 
 ### END OF CLASSES ###
 
+from tkinter import Tk
+from model.game_model import GameModel
+from view.game_view import GameView
+from controller.game_controller import GameController
+
 def main():
-    # create Tk instance
     window = Tk()
-    # set program title
-    window.title("Minesweeper")
-    # create game instance
-    minesweeper = Minesweeper(window)
-    # run event loop
+    window.title("Minesweeper MVC")
+    rows, columns, num_mines = 10, 10, 10
+    model = GameModel(rows, columns, num_mines)
+    view = GameView(window, rows, columns)
+    controller = GameController(model, view)
     window.mainloop()
 
 if __name__ == "__main__":
