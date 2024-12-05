@@ -1,28 +1,61 @@
-
-import platform
-
 class GameController:
-    def __init__(self, model, view):
+    def __init__(self, model, view, test_board, test_mode=False):
+        """
+        Initializes the controller with a game model and view.
+        """
         self.model = model
         self.view = view
-        self.bind_events()
-        self.model.add_observer(self.view)
+        self.test_mode = test_mode
+        self.test_board = test_board
 
-    def bind_events(self):
-        for (row, column), button in self.view.buttons.items():
-            button.bind('<Button-1>', self.on_left_click_wrapper(row, column))
-            button.bind('<Button-2>' if platform.system() == 'Darwin' else '<Button-3>', self.on_right_click_wrapper(row, column))
+    def reveal_cell(self, x, y):
+        """
+        Handles revealing a cell.
+        """
+        result = self.model.reveal_cell(x, y)
+        self.view.update_cell(x, y)
 
-    def on_left_click_wrapper(self, row, column):
-        return lambda event: self.on_left_click(row, column)
+        # Reveal surrounding empty cells if needed
+        cell = self.model.board[x][y]
+        if cell.adjacent_mines == 0:
+            self.model.reveal_empty_cells(x, y, self.view.update_cell)
 
-    def on_right_click_wrapper(self, row, column):
-        return lambda event: self.on_right_click(row, column)
+        if result == "LOSS":
+            self.view.display_game_over(False)
+        elif result == "WIN" or result == "WIN_TREASURE":  # Updated to handle treasure win
+            self.view.display_game_over(result)  # Pass the specific win condition
 
-    def on_left_click(self, row, column):
-        self.model.reveal_cell(row, column)
-        # ...additional logic...
+    def toggle_flag(self, x, y):
+        """
+        Handles toggling a flag on a cell.
+        """
+        self.model.toggle_flag(x, y)
+        self.view.update_cell(x, y)
+        self.view.update_flags_label()
 
-    def on_right_click(self, row, column):
-        self.model.flag_cell(row, column)
-        # ...additional logic...
+    def restart_game(self):
+        """Restarts the game by resetting the model and refreshing the view."""
+        self.model.reset_game()
+        if self.test_mode:
+            print('Log: In test mode')
+            self.model.initialize_test_board(self.test_board)
+        else:
+            print('Log: In normal mode')
+            self.model.initialize_board()
+        self.model.start_time = None
+
+        # Update view based on type
+        if hasattr(self.view, "setup_board"):  # GUI View
+            self.view.setup_board()
+            self.view.start_timer()
+            # Update GUI elements only for GUI view
+            self.view.labels["mines"].config(text=f"Mines: {self.model.mines_count}")
+            self.view.update_flags_label()
+        elif hasattr(self.view, "reset_view"):  # Text View
+            self.view.reset_view()
+
+    def run(self):
+        """
+        Starts the main game loop (for console-based view).
+        """
+        self.view.run()
