@@ -18,7 +18,7 @@ class Cell:
         self.is_flagged = False
         self.is_revealed = False
         self.adjacent_mines = 0
-        self.has_treasure = has_treasure  # New: treasure attribute for instant win condition
+        self.has_treasure = has_treasure  # Treasure attribute for instant win condition
         self.x = x  # Row index
         self.y = y  # Column index
 
@@ -41,18 +41,15 @@ class GameModel:
     DIFFICULTY_TO_LEVEL = {
         'beginner': {
             'board_size': (8, 8),
-            'mines_range': (1, 10),
-            'treasures': 2  # New: treasure count for beginner level
+            'mines_range': (1, 10)
         },
         'intermediate': {
             'board_size': (16, 16),
-            'mines_range': (11, 40),
-            'treasures': 4  # New: treasure count for intermediate level
+            'mines_range': (11, 40)
         },
         'expert': {
             'board_size': (30, 16),
-            'mines_range': (41, 99),
-            'treasures': 6  # New: treasure count for expert level
+            'mines_range': (41, 99)
         }
     }
 
@@ -62,6 +59,8 @@ class GameModel:
         """
         self.board = []
         self.difficulty = self.DIFFICULTY_TO_LEVEL.get(difficulty)
+        if not self.difficulty:
+            raise ValueError(f"Unknown difficulty level: {difficulty}")
         self.mines_count = 0
         self.flags_count = 0
         self.board_size = (0, 0)
@@ -114,14 +113,19 @@ class GameModel:
             x, y = divmod(pos, col)
             self.board[x][y].is_mine = True
 
-        # New: Place treasures in non-mine positions
-        treasure_positions = sample(
-            [pos for pos in range(row * col) if pos not in mine_positions],
-            self.difficulty['treasures']
-        )
-        for pos in treasure_positions:
-            x, y = divmod(pos, col)
-            self.board[x][y].has_treasure = True
+        # Dynamically set the number of treasures to be less than the number of mines
+        if num_mines > 1:
+            treasures_count = randint(0, num_mines - 1)
+        else:
+            treasures_count = 0  # No treasures if there's only one mine
+
+        # Randomly place treasures in non-mine positions
+        available_positions = [pos for pos in range(row * col) if pos not in mine_positions]
+        if treasures_count > 0:
+            treasure_positions = sample(available_positions, treasures_count)
+            for pos in treasure_positions:
+                x, y = divmod(pos, col)
+                self.board[x][y].has_treasure = True
 
         # Calculate adjacent mines for each cell
         for x in range(row):
@@ -140,7 +144,9 @@ class GameModel:
         """Returns a list of neighboring cells for given coordinates."""
         rows, cols = self.board_size
         neighbors = []
-        for dx, dy in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
+        for dx, dy in [(-1, -1), (-1, 0), (-1, 1), 
+                       (0, -1),          (0, 1), 
+                       (1, -1),  (1, 0), (1, 1)]:
             nx, ny = x + dx, y + dy
             if 0 <= nx < rows and 0 <= ny < cols:
                 neighbors.append(self.board[nx][ny])
@@ -164,7 +170,7 @@ class GameModel:
         cell.reveal()
         self.clicked_count += 1
 
-        # New: Check for treasure win condition first
+        # Check for treasure win condition first
         if cell.has_treasure:
             return "WIN_TREASURE"
 
@@ -205,7 +211,7 @@ class GameModel:
         """
         unrevealed_count = 0
         flagged_mines = 0
-        
+
         for row in self.board:
             for cell in row:
                 if not cell.is_revealed:
@@ -230,5 +236,4 @@ class GameModel:
         self.flags_count = 0
         self.board_size = (0, 0)
         self.start_time = None
-        
-      
+        self.clicked_count = 0

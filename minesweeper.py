@@ -1,3 +1,4 @@
+import os
 from model.game_model import GameModel
 from controller.game_controller import GameController
 from view.gui_view import GUIView
@@ -5,15 +6,27 @@ from view.text_view import TextView
 from tkinter import Tk
 from test_validator import TestValidator
 
+os.environ['TK_SILENCE_DEPRECATION'] = '1'
+
+
 def main():
     """
     Main function to initialize and start the Minesweeper game.
     Allows users to select the interface (GUI or text-based) and difficulty.
     """
-    # Ask if user wants to enter testing mode
-    print("Would you like to enter testing mode? (yes/no)")
-    testing_mode = input().strip().lower() == 'yes'
-    
+    # Ask if user wants to enter testing mode with input validation
+    while True:
+        print("Would you like to enter testing mode? (yes/no)")
+        user_input = input().strip().lower()
+        if user_input in ['yes', 'no']:
+            testing_mode = (user_input == 'yes')
+            break
+        else:
+            print("Invalid input. Please enter 'yes' or 'no'.")
+
+    if not testing_mode:
+        print("You have selected normal mode of the game.")
+
     test_board = None
     if testing_mode:
         while test_board is None:
@@ -21,20 +34,31 @@ def main():
             filename = input().strip()
             test_board = TestValidator.read_test_board(filename)
             if test_board is None:
-                print("Would you like to try another file? (yes/no)")
-                if input().strip().lower() != 'yes':
+                while True:
+                    print("Would you like to try another file? (yes/no)")
+                    retry_input = input().strip().lower()
+                    if retry_input in ['yes', 'no']:
+                        retry = (retry_input == 'yes')
+                        break
+                    else:
+                        print("Invalid input. Please enter 'yes' or 'no'.")
+                if not retry:
                     testing_mode = False
+                    print("Exiting testing mode. You are now in normal mode of the game.")
                     break
             else:
                 # Ask if user wants to play with this board
-                print("Would you like to play with this board layout? (yes/no)")
-                if input().strip().lower() != 'yes':
+                while True:
+                    print("Would you like to play with this board layout? (yes/no)")
+                    play_input = input().strip().lower()
+                    if play_input in ['yes', 'no']:
+                        play = (play_input == 'yes')
+                        break
+                    else:
+                        print("Invalid input. Please enter 'yes' or 'no'.")
+                if not play:
+                    print("Exiting testing mode. You are now in normal mode of the game.")
                     exit()
-                # else:
-                #     testing_mode = False
-                #     test_board = None
-        
-
 
     # Initialize model based on mode
     if testing_mode and test_board:
@@ -49,27 +73,35 @@ def main():
             '2': 'intermediate',
             '3': 'expert'
         }
-        difficulty_level = input("Enter difficulty (1/2/3): ")
-        if difficulty_level not in difficulty_map.keys():
-            print('The level selected is not valid. Starting game in beginner mode.')
-        difficulty = difficulty_map.get(difficulty_level, 'beginner')
+        while True:
+            difficulty_level = input("Enter difficulty (1/2/3): ").strip()
+            if difficulty_level in difficulty_map:
+                difficulty = difficulty_map[difficulty_level]
+                break
+            else:
+                print("Invalid input. Please enter '1', '2', or '3'.")
         game_model = GameModel(difficulty)
         game_model.initialize_board()
 
-     # Ask user for game mode
+    # Ask user for game mode
     print("Select game mode:")
     print("1. GUI")
     print("2. Text")
-    mode = input("Enter mode (1/2): ")   
+    while True:
+        mode = input("Enter mode (1/2): ").strip()
+        if mode in ['1', '2']:
+            break
+        else:
+            print("Invalid input. Please enter '1' for GUI or '2' for Text mode.")
 
     # Create appropriate view and controller based on mode selection
     if mode == '1':
         # GUI Mode
         tk = Tk()
         tk.title("Minesweeper")
-        gui_view = GUIView(tk, game_model, GameController(game_model, None, test_board, testing_mode))
-        controller = GameController(game_model, gui_view, test_board, testing_mode)
-        gui_view.controller = controller
+        controller = GameController(game_model, None, test_board, testing_mode)
+        gui_view = GUIView(tk, game_model, controller)
+        controller.view = gui_view
         tk.mainloop()
     elif mode == '2':
         # Text-based Mode
@@ -80,7 +112,6 @@ def main():
     else:
         print("Invalid mode! Exiting game.")
         exit()
-
 
 
 if __name__ == "__main__":

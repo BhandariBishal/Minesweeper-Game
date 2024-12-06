@@ -37,10 +37,10 @@ class GameController:
         """Restarts the game by resetting the model and refreshing the view."""
         self.model.reset_game()
         if self.test_mode:
-            print('Log: In test mode')
+            # print('Log: In test mode')
             self.model.initialize_test_board(self.test_board)
         else:
-            print('Log: In normal mode')
+            # print('Log: In normal mode')
             self.model.initialize_board()
         self.model.start_time = None
 

@@ -94,10 +94,8 @@ class TextView:
                 print("*")
             elif cell.has_treasure:  # New: Show treasure
                 print("T")
-            elif cell.adjacent_mines > 0:
-                print(cell.adjacent_mines)
             else:
-                print(" ")
+                pass
         elif cell.is_flagged:
             print("F")
         else:
