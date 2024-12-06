@@ -192,9 +192,9 @@ class TextView:
         print("\nGame Over!!")
         if won:
             if found_treasure:
-                print("🎉 Congratulations! You have found the treasure! 💰")
+                print(" Congratulations! You have found the treasure! 💰")
             else:
-                print("Congratulations! 🎉 You won the game! ")
+                print("Congratulations!  You won the game! 🎉 ")
         else:
             print("You hit a mine! 💥💣")
 
@@ -209,17 +209,17 @@ class TextView:
             row_display = [f"{x:2}  "]
             for cell in row:
                 if cell.is_mine and cell.is_flagged:
-                    row_display.append("F ")
+                    row_display.append("F ") # correclty flagged
                 elif cell.is_mine:
-                    row_display.append("* ")
+                    row_display.append("* ") # revealed mine
                 elif not cell.is_mine and cell.is_flagged:
-                    row_display.append("X ")
+                    row_display.append("X ") # Wrong flag
                 elif cell.has_treasure:
-                    row_display.append("T ")
+                    row_display.append("T ") # Treasure
                 elif cell.adjacent_mines > 0:
                     row_display.append(f"{cell.adjacent_mines} ")
                 else:
-                    row_display.append("  ")
+                    row_display.append("  ") # Empty cell
             print(" ".join(row_display))
         print()
 
