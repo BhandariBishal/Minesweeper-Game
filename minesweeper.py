@@ -12,9 +12,11 @@ os.environ['TK_SILENCE_DEPRECATION'] = '1'
 def main():
     """
     Main function to initialize and start the Minesweeper game.
-    Allows users to select the interface (GUI or text-based) and difficulty.
+    The user is first prompted if they would like to enter testing mode. If yes, they are asked
+    to enter a test board file. If no, they are asked to select a difficulty level.
+    The users are then Allowed to select the interface (GUI or text-based) and difficulty.
     """
-    # Ask if user wants to enter testing mode with input validation
+    # Ask if user wants to enter testing mode with test board validation
     while True:
         print("Would you like to enter testing mode? (yes/no)")
         user_input = input().strip().lower()
@@ -58,11 +60,12 @@ def main():
                         print("Invalid input. Please enter 'yes' or 'no'.")
                 if not play:
                     print("Exiting testing mode. You are now in normal mode of the game.")
-                    exit()
+                    testing_mode = False
+                    break
 
     # Initialize model based on mode
     if testing_mode and test_board:
-        game_model = GameModel(None)  # No difficulty needed for test board
+        game_model = GameModel("beginner")  # No difficulty needed for test board
         game_model.initialize_test_board(test_board)
     else:
         # Only ask for difficulty in normal game mode
